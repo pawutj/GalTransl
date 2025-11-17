@@ -3,7 +3,7 @@ import os
 # This file contains all the text strings used in the UI and backend
 
 # Available languages
-AVAILABLE_LANGUAGES = ["zh-cn", "en"]
+AVAILABLE_LANGUAGES = ["zh-cn", "en", "th"]
 
 # Default language
 DEFAULT_LANGUAGE = "zh-cn"

@@ -119,6 +119,7 @@ LANG_SUPPORTED = {
     "ko": "Korean",
     "ru": "Russian",
     "fr": "French",
+    "th": "Thai",
 }
 LANG_SUPPORTED_W = {
     "zh-cn": "简体中文",
@@ -128,6 +129,7 @@ LANG_SUPPORTED_W = {
     "ko": "한국어",
     "ru": "русский",
     "fr": "Français",
+    "th": "ไทย",
 }
 DEBUG_LEVEL = {
     "debug": logging.DEBUG,

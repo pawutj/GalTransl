@@ -130,6 +130,11 @@ def find_problems(
                         non_gbk_chars = non_gbk_chars.replace(non_gbk_white,"")
                     if non_gbk_chars !="":
                         problem_list.append(f"语言不通-非GBK：{non_gbk_chars}")
+            elif "th" in projectConfig.target_lang:
+                # Check for Thai characters (Unicode range U+0E00-U+0E7F)
+                import re
+                if not re.search(r'[\u0E00-\u0E7F]', post_zh):
+                    problem_list.append("语言不通-非泰语输出")
         if CProblemType.缺控制符 in find_type:
             control_list_jp=extract_control_substrings(pre_jp)
             control_list_zh=extract_control_substrings(post_zh)

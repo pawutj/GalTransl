@@ -1,0 +1,151 @@
+# GalTransl Configuration for QWEN 3 + Thai Translation (JP→TH)
+# ตัวอย่างการตั้งค่าสำหรับแปล JP→TH ด้วย QWEN 3 และ XLSX input
+
+# ================================
+# Backend Configuration (QWEN 3)
+# ================================
+backendSpecific:
+  OpenAI-Compatible:
+    tokens:
+      - token: sk-your-qwen-api-key-here  # ใส่ QWEN API key ที่นี่
+        endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1  # Qwen API endpoint
+        modelName: qwen-plus  # Options: qwen-plus, qwen-turbo, qwen-max
+        stream: true
+      # สามารถเพิ่ม token หลายตัวเพื่อ load balancing
+      # - token: sk-another-key
+      #   endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1
+      #   modelName: qwen-turbo
+
+    # Token Strategy
+    tokenStrategy: "random"  # random/sequential - วิธีเลือก token
+    checkAvailable: true     # ตรวจสอบว่า token ใช้งานได้
+    apiTimeout: 120          # API timeout (วินาที)
+
+    # Error Handling
+    apiErrorWait: 60          # รอกี่วินาทีเมื่อ API error
+    smartRetry: true          # ลดขนาด batch ถ้าแปลล้มเหลว
+    retranslFail: true        # แปลใหม่ประโยคที่ล้มเหลว
+
+# ================================
+# Plugin Configuration (XLSX)
+# ================================
+plugin:
+  # File Plugin - T++ XLSX Format
+  filePlugin: file_translator++_xlsx
+
+  # T++ XLSX Settings
+  file_translator++_xlsx:
+    是否自动识别名称: false  # true = แยกชื่อตัวละครอัตโนมัติ, false = อ่านจาก name column
+    清除换行符: false       # true = ลบ line breaks, false = เก็บไว้
+
+  # Text Plugins - ควรเปิด normalfix เสมอ
+  textPlugins:
+    - text_common_normalfix  # แก้ไขปัญหาข้อความทั่วไป (ต้องเปิด)
+    # - text_common_skipNoJP # ข้ามประโยคที่ไม่มีภาษาญี่ปุ่น (optional)
+
+# ================================
+# Common Settings
+# ================================
+common:
+  # Language Settings
+  language: "th"  # ภาษาเป้าหมาย: th = Thai
+
+  # Translation Batch Size
+  gpt:
+    numPerRequestTranslate: 10  # จำนวนประโยคต่อ 1 request (แนะนำ: 5-15)
+    contextNum: 8              # จำนวนประโยคก่อนหน้าสำหรับบริบท (แนะนำ: 6-10)
+
+  # Parallel Processing
+  workersPerProject: 16  # จำนวน workers ประมวลผลพร้อมกัน (แนะนำ: 8-16)
+
+  # File Splitting (สำหรับไฟล์ใหญ่)
+  splitFile: "Num"       # "Num" = แบ่งตามจำนวนประโยค, "Equal" = แบ่งเท่าๆ กัน, "no" = ไม่แบ่ง
+  splitFileNum: 2048     # แบ่งทุกๆ 2048 ประโยค
+  splitFileCrossNum: 16  # ประโยคซ้อนทับระหว่างไฟล์ย่อย (สำหรับบริบท)
+
+  # Logging
+  loggingLevel: info  # debug/info/warning/error
+  saveLog: true       # บันทึก log ลงไฟล์
+
+  # Retry Settings
+  retranslKey: ""  # ใส่ปัญหาที่ต้องการแปลใหม่ เช่น "残留日文" (เว้นว่างไว้ = ไม่แปลใหม่)
+
+# ================================
+# Dictionary Settings
+# ================================
+dictionary:
+  # Pre-translation Dictionary (ก่อนแปล)
+  preDict:
+    - 01H字典_矫正_译前.txt
+
+  # Post-translation Dictionary (หลังแปล)
+  postDict:
+    - 00通用字典_译后.txt
+
+  # GPT Dictionary (สำคัญมาก!)
+  # สร้างไฟล์ "项目GPT字典.txt" ในโฟลเดอร์โปรเจค
+  # รูปแบบ: ญี่ปุ่น[TAB]ไทย[TAB]คำอธิบาย
+  # ตัวอย่าง:
+  # フラン	ฟลาน	name, lady, teacher
+  # 主人公	ผู้เล่น	player's name, boy
+  gpt:
+    - GPT字典.txt           # ดิกชันนารีทั่วไป (ใน Dict/ folder)
+    - 项目GPT字典.txt       # ดิกชันนารีเฉพาะโปรเจค (แนะนำให้สร้าง!)
+
+# ================================
+# Problem Analysis (ตรวจสอบคุณภาพ)
+# ================================
+problemAnalyze:
+  # List of problems to detect
+  problemList:
+    - 词频过高      # คำซ้ำมากเกินไป (>20 ครั้ง)
+    - 标点错漏      # เครื่องหมายวรรคตอนผิดพลาด
+    - 残留日文      # มีภาษาญี่ปุ่นเหลืออยู่
+    - 语言不通      # ภาษาผิด (ตรวจสอบว่าเป็นภาษาไทย)
+    - 丢失换行      # ขาดการขึ้นบรรทัดใหม่
+    - 多加换行      # ขึ้นบรรทัดใหม่มากเกินไป
+    - 比日文长      # ยาวกว่าต้นฉบับ 1.3 เท่า
+    - 字典使用      # ไม่ใช้ GPT Dictionary ตามที่กำหนด
+    # - 引入英文    # เพิ่มภาษาอังกฤษที่ไม่มีในต้นฉบับ (ปิดไว้)
+
+# ================================
+# Input/Output Folders
+# ================================
+# ค่า default (ไม่ต้องแก้ถ้าใช้โครงสร้างมาตรฐาน):
+# inputPath: "./gt_input"
+# outputPath: "./gt_output"
+# cachePath: "./transl_cache"
+
+# ================================
+# Thai-Specific Tips / คำแนะนำสำหรับภาษาไทย
+# ================================
+#
+# 1. GPT Dictionary คือกุญแจสำคัญ!
+#    - สร้างไฟล์ "项目GPT字典.txt" และกำหนดชื่อตัวละครทั้งหมด
+#    - ตัวอย่าง:
+#      フラン[TAB]ฟลาน[TAB]name, lady, teacher, protagonist's mentor
+#      主人公[TAB]ผู้เล่น[TAB]player, boy, high school student
+#
+# 2. การตรวจสอบภาษา
+#    - "语言不通" จะตรวจสอบว่ามีอักษรไทย (U+0E00-U+0E7F) หรือไม่
+#    - ถ้า QWEN แปลเป็นภาษาอื่น (จีน/อังกฤษ) จะเตือน
+#
+# 3. Batch Size
+#    - เริ่มจาก numPerRequestTranslate: 10
+#    - ถ้าแปลผิดบ่อย ลดเป็น 5
+#    - ถ้าแปลดี เพิ่มเป็น 15 (ประหยัด token มากขึ้น)
+#
+# 4. การทดสอบ
+#    - แปล 1 ไฟล์เท่านั้นก่อน (ย้ายไฟล์อื่นออกจาก gt_input/)
+#    - ตรวจสอบผลลัพธ์ใน gt_output/ และ transl_cache/
+#    - ถ้าดี ค่อยแปลทั้งหมด
+#
+# 5. Custom Prompt (optional)
+#    - ถ้าต้องการปรับ prompt สำหรับภาษาไทย ให้เพิ่ม:
+#      gpt.change_prompt: "AdditionalPrompt"
+#      gpt.prompt_content: "Use appropriate Thai politeness levels (ครับ/ค่ะ/นะ/จ้ะ) based on character relationships and context."
+#
+# 6. QWEN API Keys
+#    - สมัครที่: https://dashscope.console.aliyun.com/
+#    - รับ API key และใส่ใน tokens.token ด้านบน
+#
